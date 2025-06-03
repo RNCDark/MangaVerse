@@ -76,7 +76,7 @@ class _ChapterListState extends State<ChapterList>{
   }
 
   Future<void> fetchPages() async{
-    var accessToken = widget.accessToken;
+    //var accessToken = widget.accessToken;
     var chapterIds = await fetchChapters();
 
     if (chapterIds.isEmpty) {
@@ -111,9 +111,32 @@ class _ChapterListState extends State<ChapterList>{
       appBar: AppBar(
         title: Text('Chapters'),
       ),
-      body: isLoading
+        floatingActionButton: TextButton(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states){
+                  if(states.contains(WidgetState.hovered)) {
+                    return Colors.blue.withAlpha(40);
+                  }
+                  if (states.contains(WidgetState.focused) ||
+                      states.contains(WidgetState.pressed)) {
+                    return Colors.blue.withAlpha(120);
+                  }
+                  return null;
+                }
+            ),
+          ),
+            onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Added to Library')),
+            );
+            },
+            child: Text('Bookmark')
+        ),
+        body: isLoading
           ? Center(child: CircularProgressIndicator()
-      )
+        )
           : ListView.builder(
         itemCount: chapters.length,
         itemBuilder: (context, index) {
