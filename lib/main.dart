@@ -109,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }
           //print(manga['id']); // Debugging print statements
           //print(coverArt['attributes']['fileName']);
-          //print(manga);
+          print(manga);
           return {
             'title': title,
             'coverUrl': coverUrl,
@@ -132,7 +132,27 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: TextButton(
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states){
+                  if(states.contains(WidgetState.hovered)) {
+                    return Colors.blue.withAlpha(40);
+                  }
+                  if (states.contains(WidgetState.focused) ||
+                      states.contains(WidgetState.pressed)) {
+                    return Colors.blue.withAlpha(120);
+                  }
+                  return null;
+                }
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()),
+            );
+          },
+          child: Text(widget.title),),
         actions: <Widget> [
           TextButton(
             style: ButtonStyle(
@@ -151,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage()),
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage(mangaLib: [mangaList],)),
               );
             },
             child: Text('Library'),
