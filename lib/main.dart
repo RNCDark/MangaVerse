@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
+import 'library.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,6 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      debugShowCheckedModeBanner: false, //gets rid of debug sash
       home: const MyHomePage(title: 'MangaVerse'),
     );
   }
@@ -131,6 +133,51 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: <Widget> [
+          TextButton(
+            style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
+              overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states){
+                    if(states.contains(WidgetState.hovered)) {
+                      return Colors.blue.withAlpha(40);
+                    }
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(WidgetState.pressed)) {
+                      return Colors.blue.withAlpha(120);
+                    }
+                    return null;
+                  }
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage()),
+              );
+            },
+            child: Text('Library'),
+          ),
+          TextButton(
+            style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
+              overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states){
+                    if(states.contains(WidgetState.hovered)) {
+                      return Colors.blue.withAlpha(40);
+                    }
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(WidgetState.pressed)) {
+                      return Colors.blue.withAlpha(120);
+                    }
+                    return null;
+                  }
+              ),
+            ),
+            onPressed: () {
+
+            },
+            child: Text('Updates'),
+          ),
+        ]
       ),
       body: isLoading
       ? Center(
