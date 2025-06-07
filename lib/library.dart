@@ -26,19 +26,19 @@ class LibraryView extends StatefulWidget {
 class LibraryViewState extends State<LibraryView>{
   bool isLoading = true;
 
-
   @override
   Widget build(BuildContext context) {
+    final List<dynamic> mangaList = widget.lib[0][0];
     return Scaffold(
       appBar: AppBar(
         title: Text('Library'),
       ),
       body: ListView.builder(
-        itemCount: widget.lib.length,
+        itemCount: mangaList.length,
           itemBuilder: (context, index){
-          var mangaLib = widget.lib[index];
-          var libCover = mangaLib['coverUrl'];
+          var mangaLib = mangaList[index];
           var title = mangaLib['title'];
+          var libCover = mangaLib['coverUrl'];
           var libId = mangaLib['id'];
           return ListTile(
             leading: Image.network(
