@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
 import 'library.dart';
+import 'update_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -193,7 +194,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             onPressed: () {
-
+              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdatePage(mangaUp: [mangaList],)),
+              );
             },
             child: Text('Updates'),
           ),
