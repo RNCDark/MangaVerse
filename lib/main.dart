@@ -172,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage(mangaLib: [mangaList],)),
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage(mangaLib: [],)),
               );
             },
             child: Text('Library'),

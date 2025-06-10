@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+var readerList = [];
+List<dynamic> bookmarked = [];
+
 class ReaderPage extends StatelessWidget{
   const ReaderPage({super.key, required this.accessToken, required this.mangaId});
   final String accessToken;
@@ -12,6 +15,15 @@ class ReaderPage extends StatelessWidget{
       body: ChapterList(accessToken: accessToken, mangaId: mangaId),
     );
   }
+}
+
+void listReader(List<dynamic> red){
+  reader(red[0]);
+}
+
+List<dynamic> reader(Map<String, dynamic> data){
+  bookmarked.add(data);
+  return bookmarked;
 }
 
 class ChapterList extends StatefulWidget {
@@ -27,6 +39,7 @@ class ChapterList extends StatefulWidget {
 class _ChapterListState extends State<ChapterList>{
   bool isLoading = true;
   List<dynamic> chapters = [];
+  List<dynamic> mangaData = [];
   List<String> pageUrls = [];
 
   @override
@@ -38,13 +51,19 @@ class _ChapterListState extends State<ChapterList>{
 
   Future<List<String>> fetchChapters() async{
     var url = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}/feed');
+    var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art');
     var accessToken = widget.accessToken;
     var response = await http.get(url, headers: {
       'Authorization': 'Bearer $accessToken',
     });
+    var mangaResponse = await http.get(url2, headers: {
+    'Authorization': 'Bearer $accessToken',
+    });
+
     if (response.statusCode == 200) {
       print('Chapter fetch Success!');
       var data = jsonDecode(response.body);
+      print(data);
       setState(() {
         chapters = data['data'].map((feed){
           var title = feed['attributes']['title'] ?? 'No Title';
@@ -72,6 +91,36 @@ class _ChapterListState extends State<ChapterList>{
     List<String> chapterIds = chapters.map<String>((chapter){
       return chapter['chapterId'];
     }).toList();
+
+    if(mangaResponse.statusCode == 200){
+      print('Retrieved Manga data!');
+      var data = jsonDecode(mangaResponse.body);
+      setState(() {
+        var manga = data['data']; //storing the manga data
+          // Extracting the title and cover image URL
+          var title = manga['attributes']?['title']?['en'] ?? 'No Title';
+          var relationships = manga['relationships'] ?? [];
+          var coverArt = relationships.firstWhere(
+                (rel) => rel['type'] == 'cover_art',
+            orElse: () => null,
+          );
+
+          String coverUrl = 'twitter-cover.jpg';
+          if(coverArt != null && coverArt['id'] != null){
+            var fileName = coverArt['attributes']['fileName'];
+
+            coverUrl = 'https://uploads.mangadex.org/covers/${manga['id']}/$fileName';
+          }
+          mangaData = [
+            {
+            'title': title,
+            'coverUrl': coverUrl,
+            'id' : manga['id'],
+            }
+          ];
+        });
+        isLoading = false;
+      }
     return chapterIds;
   }
 
@@ -107,6 +156,7 @@ class _ChapterListState extends State<ChapterList>{
 
   @override
   Widget build(BuildContext context) {
+    final List<dynamic> bookmarked = [];
     return Scaffold(
       appBar: AppBar(
         title: Text('Chapters'),
@@ -131,6 +181,7 @@ class _ChapterListState extends State<ChapterList>{
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Added to Library')),
             );
+            readerList.add(reader(mangaData[0]));
             },
             child: Text('Bookmark')
         ),
