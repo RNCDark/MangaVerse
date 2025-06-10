@@ -46,12 +46,11 @@ class LibraryViewState extends State<LibraryView>{
             ),
             title: Text(title),
             onTap: () {
-              throw UnimplementedError();
-              /*Navigator.push(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: libId),
+                MaterialPageRoute(builder: (context) => ReaderPage( mangaId: libId),
                 )
-              );*/
+              );
             },
           );
           }

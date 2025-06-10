@@ -6,8 +6,8 @@ var readerList = [];
 List<dynamic> bookmarked = [];
 
 class ReaderPage extends StatelessWidget{
-  const ReaderPage({super.key, required this.accessToken, required this.mangaId});
-  final String accessToken;
+  const ReaderPage({super.key, this.accessToken, required this.mangaId});
+  final String? accessToken;
   final String mangaId;
   @override
   Widget build(BuildContext context) {
@@ -27,10 +27,10 @@ List<dynamic> reader(Map<String, dynamic> data){
 }
 
 class ChapterList extends StatefulWidget {
-  final String accessToken;
+  final String ? accessToken;
   final String mangaId;
 
-  const ChapterList({super.key, required this.accessToken, required this.mangaId});
+  const ChapterList({super.key, this.accessToken, required this.mangaId});
 
   @override
   State<ChapterList> createState() => _ChapterListState();
