@@ -36,9 +36,9 @@ class LibraryViewState extends State<LibraryView>{
         itemCount: mangaList.length,
           itemBuilder: (context, index){
           var mangaLib = mangaList[index];
-          var title = mangaLib['title'];
-          var libCover = mangaLib['coverUrl'];
-          var libId = mangaLib['id'];
+          var title = mangaLib[index]['title'];
+          var libCover = mangaLib[index]['coverUrl'];
+          var libId = mangaLib[index]['id'];
           return ListTile(
             leading: Image.network(
               '$libCover.512.jpg',

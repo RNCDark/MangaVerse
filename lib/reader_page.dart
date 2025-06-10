@@ -56,9 +56,40 @@ class _ChapterListState extends State<ChapterList>{
     var response = await http.get(url, headers: {
       'Authorization': 'Bearer $accessToken',
     });
+
     var mangaResponse = await http.get(url2, headers: {
     'Authorization': 'Bearer $accessToken',
     });
+
+    if(mangaResponse.statusCode == 200){
+      print('Retrieved Manga data!');
+      var data = jsonDecode(mangaResponse.body);
+      setState(() {
+        var manga = data['data']; //storing the manga data
+        // Extracting the title and cover image URL
+        var title = manga['attributes']?['title']?['en'] ?? 'No Title';
+        var relationships = manga['relationships'] ?? [];
+        var coverArt = relationships.firstWhere(
+              (rel) => rel['type'] == 'cover_art',
+          orElse: () => null,
+        );
+
+        String coverUrl = 'twitter-cover.jpg';
+        if(coverArt != null && coverArt['id'] != null){
+          var fileName = coverArt['attributes']['fileName'];
+
+          coverUrl = 'https://uploads.mangadex.org/covers/${manga['id']}/$fileName';
+        }
+        mangaData = [
+          {
+            'title': title,
+            'coverUrl': coverUrl,
+            'id' : manga['id'],
+          }
+        ];
+      });
+      isLoading = false;
+    }
 
     if (response.statusCode == 200) {
       print('Chapter fetch Success!');
@@ -91,36 +122,6 @@ class _ChapterListState extends State<ChapterList>{
     List<String> chapterIds = chapters.map<String>((chapter){
       return chapter['chapterId'];
     }).toList();
-
-    if(mangaResponse.statusCode == 200){
-      print('Retrieved Manga data!');
-      var data = jsonDecode(mangaResponse.body);
-      setState(() {
-        var manga = data['data']; //storing the manga data
-          // Extracting the title and cover image URL
-          var title = manga['attributes']?['title']?['en'] ?? 'No Title';
-          var relationships = manga['relationships'] ?? [];
-          var coverArt = relationships.firstWhere(
-                (rel) => rel['type'] == 'cover_art',
-            orElse: () => null,
-          );
-
-          String coverUrl = 'twitter-cover.jpg';
-          if(coverArt != null && coverArt['id'] != null){
-            var fileName = coverArt['attributes']['fileName'];
-
-            coverUrl = 'https://uploads.mangadex.org/covers/${manga['id']}/$fileName';
-          }
-          mangaData = [
-            {
-            'title': title,
-            'coverUrl': coverUrl,
-            'id' : manga['id'],
-            }
-          ];
-        });
-        isLoading = false;
-      }
     return chapterIds;
   }
 
@@ -156,7 +157,6 @@ class _ChapterListState extends State<ChapterList>{
 
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> bookmarked = [];
     return Scaffold(
       appBar: AppBar(
         title: Text('Chapters'),
