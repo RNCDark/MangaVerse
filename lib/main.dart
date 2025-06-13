@@ -93,10 +93,12 @@ class _MyHomePageState extends State<MyHomePage> {
     if(mangaResponse.statusCode == 200){
       print('Manga fetch Success!');
       var data = jsonDecode(mangaResponse.body); //decoding manga data
+      print(data);
       setState(() {
         mangaList = data['data'].map((manga){ //storing the manga data
           // Extracting the title and cover image URL
           var title = manga['attributes']?['title']?['en'] ?? 'No Title';
+          var updated = manga['attributes']?['updatedAt'] ?? [];
           var relationships = manga['relationships'] ?? [];
           var coverArt = relationships.firstWhere(
                 (rel) => rel['type'] == 'cover_art',
@@ -108,11 +110,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
             coverUrl = 'https://uploads.mangadex.org/covers/${manga['id']}/$fileName';
           }
-          //print(manga['id']); // Debugging print statements
-          //print(coverArt['attributes']['fileName']);
-          //print(manga);
           return {
             'title': title,
+            'updated': updated,
+            'status': manga['attributes']?['status'] ?? [],
             'coverUrl': coverUrl,
             'id' : manga['id'],
           };
@@ -194,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdatePage(mangaUp: [mangaList],)),
+              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdatePage(access: accessToken,)),
               );
             },
             child: Text('Updates'),
@@ -225,6 +226,8 @@ class _MyHomePageState extends State<MyHomePage> {
               var manga = mangaList[index];
               var mangaId = manga['id'];
               var title = manga['title'];
+              var updated = manga['updated'];
+              var stats = manga['status'];
               var coverUrl = manga['coverUrl'];
               return ListTile(
                 leading: Image.network(
@@ -232,6 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   fit: BoxFit.fill,
                 ),
                 title: Text(title),
+                subtitle: Text('$stats - $updated'),
                 onTap: () {
                   Navigator.push(
                     context,
