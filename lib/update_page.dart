@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'reader_page.dart';
 
+List<dynamic> updates = [];
+
 class UpdatePage extends StatelessWidget{
   const UpdatePage({super.key, required this.mangaUp});
   final List<dynamic> mangaUp;
@@ -27,7 +29,9 @@ class UpdateViewState extends State<UpdateView>{
 
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> mangaList = widget.up[0][0];
+    //adds the recently updated list to updates
+    updates.add(widget.up[0][0]);
+    final List<dynamic> mangaList = updates[0]; //hopefully pushes a growable list of constant updates without repeat
     return Scaffold(
       appBar: AppBar(
         title: Text('Updated'),
@@ -46,12 +50,11 @@ class UpdateViewState extends State<UpdateView>{
               ),
               title: Text(title),
               onTap: () {
-                throw UnimplementedError();
-                /*Navigator.push(
+                Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: upId),
+                MaterialPageRoute(builder: (context) => ReaderPage(mangaId: upId),
                 )
-              );*/
+              );
               },
             );
           }

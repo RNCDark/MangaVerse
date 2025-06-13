@@ -110,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }
           //print(manga['id']); // Debugging print statements
           //print(coverArt['attributes']['fileName']);
-          print(manga);
+          //print(manga);
           return {
             'title': title,
             'coverUrl': coverUrl,
