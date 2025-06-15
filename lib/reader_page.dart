@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 var readerList = [];
@@ -94,19 +95,21 @@ class _ChapterListState extends State<ChapterList>{
     if (response.statusCode == 200) {
       print('Chapter fetch Success!');
       var data = jsonDecode(response.body);
-      //print(data);
+      print(data);
       setState(() {
         chapters = data['data'].map((feed){
           var title = feed['attributes']['title'] ?? 'No Title';
           var chp = feed['attributes']['chapter'];
-          var chpId = feed['id'];
           var lang = feed['attributes']['translatedLanguage'];
+          var external = feed['attributes']['externalUrl'];
+          var chpId = feed['id'];
           //print(feed['attributes']);
           return {
             'attributes':{
               'title': title,
               'chapter': chp,
               'lang' : lang,
+              'externalUrl': external,
             },
             'chapterId' : chpId,
           };
@@ -191,12 +194,19 @@ class _ChapterListState extends State<ChapterList>{
           var chpId = chapter['chapterId'] ?? chapter['id'];
           var chp = attributes['chapter'];
           var lang = attributes['lang'];
+          var ext = attributes['externalUrl'];
           var chapterTitle = attributes['title'] ?? 'No Title';
           //print('Chapter.$chp : $chapterTitle');
           return ListTile(
             subtitle: Text(lang),
             title: Text('Chapter.$chp $chapterTitle'),
             onTap: () async{
+              final Uri external = Uri.parse(ext);
+              if(ext != null && await canLaunchUrl(external)){
+                await launchUrl(external);
+              } else {
+                print('❌ Could not launch $ext');
+              }
               final pageU = await fetchPages(chpId);
               if(!context.mounted)return;
               Navigator.push(
