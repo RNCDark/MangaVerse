@@ -94,23 +94,29 @@ class _ChapterListState extends State<ChapterList>{
     if (response.statusCode == 200) {
       print('Chapter fetch Success!');
       var data = jsonDecode(response.body);
-      print(data);
+      //print(data);
       setState(() {
         chapters = data['data'].map((feed){
           var title = feed['attributes']['title'] ?? 'No Title';
           var chp = feed['attributes']['chapter'];
           var chpId = feed['id'];
-          var description = feed['attributes']['description'];
+          var lang = feed['attributes']['translatedLanguage'];
           //print(feed['attributes']);
           return {
             'attributes':{
               'title': title,
               'chapter': chp,
-              'description' : description,
+              'lang' : lang,
             },
             'chapterId' : chpId,
           };
         }).toList();
+        chapters.sort((a, b){
+          double chpA = double.tryParse(a['attributes']['chapter'] ?? '0') ?? 0;
+          double chpB = double.tryParse(b['attributes']['chapter'] ?? '0') ?? 0;
+          //return chpA.compareTo(chpB); //ascending order
+          return chpB.compareTo(chpA); //descending order
+        });
         isLoading = false;
       });
     } else {
@@ -134,7 +140,10 @@ class _ChapterListState extends State<ChapterList>{
       return;
     }
 
-    String chapterId = chapterIds[0];
+    String chapterId = '';
+    for(int i = 0; i < chapterIds.length; ++i){
+      chapterId = chapterIds[i];
+    }
 
     var url = Uri.parse('https://api.mangadex.org/at-home/server/$chapterId');
     var response = await http.get(url);
@@ -142,6 +151,7 @@ class _ChapterListState extends State<ChapterList>{
     if(response.statusCode == 200){
       print('Page fetch Success');
       var data = jsonDecode(response.body);
+      //print(data);
       String baseUrl = data['baseUrl'];
       String hash = data['chapter']['hash'];
       //print(baseUrl);
@@ -150,6 +160,7 @@ class _ChapterListState extends State<ChapterList>{
         return '$baseUrl/data/$hash/$file';
       }).toList();
     }else{
+      fetchPages();
       print('Page fetch failed : ${response.statusCode}');
       return; //stops on failure
     }
