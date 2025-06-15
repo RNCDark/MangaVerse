@@ -46,10 +46,10 @@ class _ChapterListState extends State<ChapterList>{
   void initState() {
     super.initState();
     fetchChapters();
-    fetchPages();
+    //fetchPages('');
   }
 
-  Future<List<String>> fetchChapters() async{
+  Future<void> fetchChapters() async{
     var url = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}/feed');
     var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art');
     var accessToken = widget.accessToken;
@@ -125,26 +125,10 @@ class _ChapterListState extends State<ChapterList>{
       });
       print('Failed to load chapters: ${response.statusCode}');
     }
-    List<String> chapterIds = chapters.map<String>((chapter){
-      return chapter['chapterId'];
-    }).toList();
-    return chapterIds;
   }
 
-  Future<void> fetchPages() async{
+  Future<List<String>> fetchPages(String chapterId) async{
     //var accessToken = widget.accessToken;
-    var chapterIds = await fetchChapters();
-
-    if (chapterIds.isEmpty) {
-      print('No chapters found.');
-      return;
-    }
-
-    String chapterId = '';
-    for(int i = 0; i < chapterIds.length; ++i){
-      chapterId = chapterIds[i];
-    }
-
     var url = Uri.parse('https://api.mangadex.org/at-home/server/$chapterId');
     var response = await http.get(url);
 
@@ -160,10 +144,10 @@ class _ChapterListState extends State<ChapterList>{
         return '$baseUrl/data/$hash/$file';
       }).toList();
     }else{
-      fetchPages();
       print('Page fetch failed : ${response.statusCode}');
-      return; //stops on failure
+      return []; //stops on failure
     }
+    return pageUrls;
   }
 
   @override
@@ -204,21 +188,25 @@ class _ChapterListState extends State<ChapterList>{
         itemBuilder: (context, index) {
           var chapter = chapters[index];
           var attributes = chapter['attributes'] ?? {};
+          var chpId = chapter['chapterId'] ?? chapter['id'];
           var chp = attributes['chapter'];
+          var lang = attributes['lang'];
           var chapterTitle = attributes['title'] ?? 'No Title';
           //print('Chapter.$chp : $chapterTitle');
           return ListTile(
-            //subtitle: Text(chp),
+            subtitle: Text(lang),
             title: Text('Chapter.$chp $chapterTitle'),
-            onTap: () {
+            onTap: () async{
+              final pageU = await fetchPages(chpId);
+              if(!context.mounted)return;
               Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => Scaffold(
                     appBar: AppBar(title: Text('Chapter $chp'),),
                     body: ListView.builder(
-                      itemCount: pageUrls.length,
+                      itemCount: pageU.length,
                       itemBuilder: (context, index){
-                        var pages = pageUrls[index];
+                        var pages = pageU[index];
                         return Padding(padding: const EdgeInsets.symmetric(vertical: 5.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -228,6 +216,9 @@ class _ChapterListState extends State<ChapterList>{
                                     pages,
                                     fit: BoxFit.contain,
                                     alignment: Alignment.topCenter,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Text('❌ Failed to load image');
+                                    },
                                   ),
                                 ),
                               ],
