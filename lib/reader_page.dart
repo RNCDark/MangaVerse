@@ -51,7 +51,7 @@ class _ChapterListState extends State<ChapterList>{
   }
 
   Future<void> fetchChapters() async{
-    var url = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}/feed');
+    var url = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}/feed?order[chapter]=desc');
     var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art');
     var accessToken = widget.accessToken;
     var response = await http.get(url, headers: {
@@ -95,7 +95,7 @@ class _ChapterListState extends State<ChapterList>{
     if (response.statusCode == 200) {
       print('Chapter fetch Success!');
       var data = jsonDecode(response.body);
-      print(data);
+      //print(data);
       setState(() {
         chapters = data['data'].map((feed){
           var title = feed['attributes']['title'] ?? 'No Title';
@@ -201,11 +201,13 @@ class _ChapterListState extends State<ChapterList>{
             subtitle: Text(lang),
             title: Text('Chapter.$chp $chapterTitle'),
             onTap: () async{
-              final Uri external = Uri.parse(ext);
-              if(ext != null && await canLaunchUrl(external)){
-                await launchUrl(external);
-              } else {
-                print('❌ Could not launch $ext');
+              if(ext != null) {
+                final Uri external = Uri.parse(ext);
+                if (await canLaunchUrl(external)) {
+                  await launchUrl(external);
+                } else {
+                  print('❌ Could not launch $ext');
+                }
               }
               final pageU = await fetchPages(chpId);
               if(!context.mounted)return;
