@@ -51,12 +51,14 @@ class _ChapterListState extends State<ChapterList>{
   }
 
   Future<void> fetchChapters() async{
-    var url = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}/feed?order[chapter]=desc');
+    const int limit = 100; //default limit
+    int offset = 0; //skips n of chapters
+    bool more = true;
+    String uLang = "en";
+    List<dynamic> allChapters = [];
+
     var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art');
     var accessToken = widget.accessToken;
-    var response = await http.get(url, headers: {
-      'Authorization': 'Bearer $accessToken',
-    });
 
     var mangaResponse = await http.get(url2, headers: {
     'Authorization': 'Bearer $accessToken',
@@ -92,46 +94,63 @@ class _ChapterListState extends State<ChapterList>{
       isLoading = false;
     }
 
-    if (response.statusCode == 200) {
-      print('Chapter fetch Success!');
-      var data = jsonDecode(response.body);
-      //print(data);
-      setState(() {
-        chapters = data['data'].map((feed){
-          var title = feed['attributes']['title'] ?? 'No Title';
-          var chp = feed['attributes']['chapter'];
-          var lang = feed['attributes']['translatedLanguage'];
-          var external = feed['attributes']['externalUrl'];
-          var chpId = feed['id'];
-          //print(feed['attributes']);
-          return {
-            'attributes':{
-              'title': title,
-              'chapter': chp,
-              'lang' : lang,
-              'externalUrl': external,
-            },
-            'chapterId' : chpId,
-          };
-        }).toList();
-        chapters.sort((a, b){
-          double chpA = double.tryParse(a['attributes']['chapter'] ?? '0') ?? 0;
-          double chpB = double.tryParse(b['attributes']['chapter'] ?? '0') ?? 0;
-          //return chpA.compareTo(chpB); //ascending order
-          return chpB.compareTo(chpA); //descending order
+    while(more) {
+      var url = Uri.parse('https://api.mangadex.org/manga/${widget
+          .mangaId}/feed?limit=$limit&offset=$offset&translatedLanguage[]=$uLang&order[chapter]=desc');
+
+      var response = await http.get(url, headers: {
+        'Authorization': 'Bearer $accessToken',
+      });
+
+      if (response.statusCode == 200) {
+        print('Chapter fetch Success!');
+        var data = jsonDecode(response.body);
+        var total = data['total'];
+        //print(data);
+          var chapFeed = data['data'].map((feed) {
+            var title = feed['attributes']['title'] ?? 'No Title';
+            var chp = feed['attributes']['chapter'];
+            var lang = feed['attributes']['translatedLanguage'];
+            var external = feed['attributes']['externalUrl'];
+            var chpId = feed['id'];
+            return {
+              'attributes': {
+                'title': title,
+                'chapter': chp,
+                'lang': lang,
+                'externalUrl': external,
+              },
+              'chapterId': chpId,
+            };
+          }).toList();
+          allChapters.addAll(chapFeed);
+          offset += limit;
+          more = allChapters.length < total;
+
+      } else {
+        setState(() {
+          isLoading = false;
         });
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      print('Failed to load chapters: ${response.statusCode}');
+        print('Failed to load chapters: ${response.statusCode}');
+        break;
+      }
     }
+    allChapters.sort((a, b) {
+      double chpA = double.tryParse(a['attributes']['chapter'] ?? '0') ??
+          0;
+      double chpB = double.tryParse(b['attributes']['chapter'] ?? '0') ??
+          0;
+      //return chpA.compareTo(chpB); //ascending order
+      return chpB.compareTo(chpA); //descending order
+    });
+
+    setState(() {
+      chapters = allChapters;
+      isLoading = false;
+    });
   }
 
   Future<List<String>> fetchPages(String chapterId) async{
-    //var accessToken = widget.accessToken;
     var url = Uri.parse('https://api.mangadex.org/at-home/server/$chapterId');
     var response = await http.get(url);
 
@@ -196,7 +215,6 @@ class _ChapterListState extends State<ChapterList>{
           var lang = attributes['lang'];
           var ext = attributes['externalUrl'];
           var chapterTitle = attributes['title'] ?? 'No Title';
-          //print('Chapter.$chp : $chapterTitle');
           return ListTile(
             subtitle: Text(lang),
             title: Text('Chapter.$chp $chapterTitle'),
