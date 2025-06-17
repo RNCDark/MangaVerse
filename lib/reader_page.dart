@@ -232,8 +232,18 @@ class _ChapterListState extends State<ChapterList>{
               Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => Scaffold(
-                    appBar: AppBar(title: Text('Chapter $chp'),),
-                    body: ListView.builder(
+                    body: NestedScrollView(
+                      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled){
+                        return <Widget>[
+                          SliverAppBar(
+                            title: Text('Chp. $chp'),
+                            floating: true,
+                            snap: true,
+                          )
+                        ];
+                      },
+                      floatHeaderSlivers: true,
+                      body: ListView.builder(
                       itemCount: pageU.length,
                       itemBuilder: (context, index){
                         var pages = pageU[index];
@@ -256,6 +266,7 @@ class _ChapterListState extends State<ChapterList>{
                         );
                       },
                     ),
+                  )
                   ))
               );// Navigate to chapter details or display chapter content
             },
