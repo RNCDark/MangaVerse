@@ -27,12 +27,43 @@ class LibraryViewState extends State<LibraryView>{
 
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> mangaList = widget.lib[0][0];
+    final List<dynamic> mangaList =
+    widget.lib.isNotEmpty && widget.lib[0].isNotEmpty
+        ? widget.lib[0][0]
+        : [];
     return Scaffold(
       appBar: AppBar(
         title: Text('Library'),
       ),
-      body: ListView.builder(
+      body: mangaList.isEmpty
+        ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.menu_book_rounded,
+            size: 64,
+            color: Colors.deepPurpleAccent,),
+            const SizedBox(height: 16,), //spacing
+            Text('Looks like your Universe is empty',
+            style: TextStyle(
+              fontSize: 18,
+              fontFamily: 'Inter',
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 18,),
+            Text('Lets add some manga to it',
+            textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'Inter'
+              ),
+            ),
+
+          ],
+        ),
+      )
+        : ListView.builder(
         itemCount: mangaList.length,
           itemBuilder: (context, index){
           var mangaLib = mangaList[index];
