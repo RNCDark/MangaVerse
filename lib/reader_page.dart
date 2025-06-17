@@ -96,7 +96,7 @@ class _ChapterListState extends State<ChapterList>{
 
     while(more) {
       var url = Uri.parse('https://api.mangadex.org/manga/${widget
-          .mangaId}/feed?limit=$limit&offset=$offset&translatedLanguage[]=$uLang&order[chapter]=desc');
+          .mangaId}/feed?limit=$limit&offset=$offset&order[chapter]=desc');
 
       var response = await http.get(url, headers: {
         'Authorization': 'Bearer $accessToken',
@@ -176,7 +176,9 @@ class _ChapterListState extends State<ChapterList>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chapters'),
+        title: mangaData.isNotEmpty
+          ? Text(mangaData[0]['title'])
+          : Text('Loading...'),
       ),
         floatingActionButton: TextButton(
           style: ButtonStyle(
