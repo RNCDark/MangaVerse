@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'reader_page.dart';
 import 'library.dart';
 import 'update_page.dart';
+import 'header_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -93,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if(mangaResponse.statusCode == 200){
       print('Manga fetch Success!');
       var data = jsonDecode(mangaResponse.body); //decoding manga data
-      print(data);
+      //print(data);
       setState(() {
         mangaList = data['data'].map((manga){ //storing the manga data
           // Extracting the title and cover image URL
@@ -132,122 +133,57 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: TextButton(
-          style: ButtonStyle(
-            foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                    (Set<WidgetState> states){
-                  if(states.contains(WidgetState.hovered)) {
-                    return Colors.blue.withAlpha(40);
-                  }
-                  if (states.contains(WidgetState.focused) ||
-                      states.contains(WidgetState.pressed)) {
-                    return Colors.blue.withAlpha(120);
-                  }
-                  return null;
-                }
-            ),
-          ),
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()),
-            );
-          },
-          child: Text(widget.title),),
-        actions: <Widget> [
-          TextButton(
-            style: ButtonStyle(
-              foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
-              overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states){
-                    if(states.contains(WidgetState.hovered)) {
-                      return Colors.blue.withAlpha(40);
-                    }
-                    if (states.contains(WidgetState.focused) ||
-                        states.contains(WidgetState.pressed)) {
-                      return Colors.blue.withAlpha(120);
-                    }
-                    return null;
-                  }
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => LibraryPage(mangaLib: [readerList],)),
-              );
-            },
-            child: Text('Library'),
-          ),
-          TextButton(
-            style: ButtonStyle(
-              foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
-              overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states){
-                    if(states.contains(WidgetState.hovered)) {
-                      return Colors.blue.withAlpha(40);
-                    }
-                    if (states.contains(WidgetState.focused) ||
-                        states.contains(WidgetState.pressed)) {
-                      return Colors.blue.withAlpha(120);
-                    }
-                    return null;
-                  }
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdatePage(access: accessToken,)),
-              );
-            },
-            child: Text('Updates'),
-          ),
-        ]
-      ),
       body: isLoading
       ? Center(
         child: CircularProgressIndicator(),
       )
-      : ListView(
-        children: [
-          Text('Recently Updated',
-            style : TextStyle(
-              color: Colors.black,
-              fontSize: 24,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w600,
-              height: 1.20,
-              letterSpacing: -0.48,
+      : SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+            Header(access: accessToken,),
+            SizedBox(height: 24,),
+            Text('Recently Updated',
+              textAlign: TextAlign.left,
+              style : TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+                height: 1.20,
+                letterSpacing: -0.48,
+              ),
             ),
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: mangaList.length,
-            itemBuilder: (context, index){
-              var manga = mangaList[index];
-              var mangaId = manga['id'];
-              var title = manga['title'];
-              var updated = manga['updated'];
-              var stats = manga['status'];
-              var coverUrl = manga['coverUrl'];
-              return ListTile(
-                leading: Image.network(
-                  '$coverUrl.512.jpg',
-                  fit: BoxFit.fill,
-                ),
-                title: Text(title),
-                subtitle: Text('$stats - $updated'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: mangaId),
-                    ),
-                  );
-                },
-              );
-            },
-          )
-        ],
-      )
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: mangaList.length,
+              itemBuilder: (context, index){
+                var manga = mangaList[index];
+                var mangaId = manga['id'];
+                var title = manga['title'];
+                var updated = manga['updated'];
+                var stats = manga['status'];
+                var coverUrl = manga['coverUrl'];
+                return ListTile(
+                  leading: Image.network(
+                    '$coverUrl.512.jpg',
+                    fit: BoxFit.fill,
+                  ),
+                  title: Text(title),
+                  subtitle: Text('$stats - $updated'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: mangaId),
+                      ),
+                    );
+                  },
+                );
+              },
+            )
+          ],
+        ),
+      ),
     );
   }
 }
