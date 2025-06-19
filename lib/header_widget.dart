@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'library.dart';
 import 'update_page.dart';
@@ -21,6 +24,15 @@ class Header extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text('MangaVerse',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontSize: 24,
+            fontFamily: 'Inter',
+            color: Colors.black,
+            ),
+          ),
+          const SizedBox(width: 50,),
           // Navigation buttons
           Expanded(
             child: Wrap(
@@ -28,7 +40,7 @@ class Header extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _navButton(context, 'Home', MyApp() , selected: true),
-                _navButton(context, 'Updates', UpdatePage(access: access!)),
+                _navButton(context, 'Updates', UpdatePage(access: access == null ? accessToken : '')),
                 _navButton(context, 'Library', LibraryPage(mangaLib: readerList)),
                 //_navButton(context, 'Popular', ),
                 //_navButton(context, 'Community', ),
