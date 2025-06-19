@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
+import 'header_widget.dart';
 
 List<dynamic> updates = [];
 
@@ -85,13 +86,17 @@ class UpdateViewState extends State<UpdateView>{
     }
 
   }
-
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Updated'),
-      ),
-      body: ListView.builder(
+      body: SafeArea(
+       child: SingleChildScrollView(
+      child: Column(
+        children: <Widget> [
+          Header(access: widget.access,),
+          ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
           itemCount: updates.length,
           itemBuilder: (context, index){
             var mangaUpdate = updates[index];
@@ -112,11 +117,15 @@ class UpdateViewState extends State<UpdateView>{
                 context,
                 MaterialPageRoute(builder: (context) => ReaderPage(mangaId: upId),
                 )
-              );
+               );
               },
             );
           }
+        ),
+        ],
       ),
+    ),
+      )
     );
   }
 }

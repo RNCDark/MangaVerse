@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
-import 'library.dart';
-import 'update_page.dart';
 import 'header_widget.dart';
+
+String accessToken = ''; //early declaration for usage later
 
 void main() {
   runApp(const MyApp());
@@ -38,15 +38,34 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  bool useMock = false; //front end dev
   List<dynamic> mangaList = [];
   bool isLoading = true;
-  String accessToken = ''; //early declaration for usage later
 
   @override
   void initState() {
     super.initState();
-    fetchAuth();
-    fetchManga();
+    if(useMock){
+      setState(() {
+        mangaList = [
+          {
+            'id' : 'mock-id',
+            'attributes' : {
+              'title': 'Mock Manga',
+              'updated' : '30 sec',
+            },
+            'relationships': {
+              'coverUrl' : 'https//via.placeholder.com/150',
+
+            }
+          }
+        ];
+      });
+      isLoading = false;
+    } else {
+      fetchAuth();
+      fetchManga();
+    }
   }
 
   Future<void> fetchAuth() async {
@@ -153,34 +172,39 @@ class _MyHomePageState extends State<MyHomePage> {
                 letterSpacing: -0.48,
               ),
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: mangaList.length,
-              itemBuilder: (context, index){
-                var manga = mangaList[index];
-                var mangaId = manga['id'];
-                var title = manga['title'];
-                var updated = manga['updated'];
-                var stats = manga['status'];
-                var coverUrl = manga['coverUrl'];
-                return ListTile(
-                  leading: Image.network(
-                    '$coverUrl.512.jpg',
-                    fit: BoxFit.fill,
-                  ),
-                  title: Text(title),
-                  subtitle: Text('$stats - $updated'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: mangaId),
-                      ),
-                    );
-                  },
-                );
-              },
-            )
+            Card(
+            child : Padding(
+              padding: EdgeInsets.all(8),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: mangaList.length,
+                itemBuilder: (context, index){
+                  var manga = mangaList[index];
+                  var mangaId = manga['id'];
+                  var title = manga['title'];
+                  var updated = manga['updated'];
+                  var stats = manga['status'];
+                  var coverUrl = manga['coverUrl'];
+                  return ListTile(
+                    leading: Image.network(
+                      '$coverUrl.512.jpg',
+                      fit: BoxFit.fill,
+                    ),
+                    title: Text(title),
+                    subtitle: Text('$stats - $updated'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ReaderPage(accessToken: accessToken, mangaId: mangaId),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              ),
+            ),
           ],
         ),
       ),

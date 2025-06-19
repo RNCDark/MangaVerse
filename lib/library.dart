@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'reader_page.dart';
+import 'header_widget.dart';
 
 class LibraryPage extends StatelessWidget{
   const LibraryPage({super.key, required this.mangaLib});
@@ -32,11 +33,15 @@ class LibraryViewState extends State<LibraryView>{
         ? widget.lib[0][0]
         : [];
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Library'),
-      ),
       body: mangaList.isEmpty
-        ? Center(
+        ? SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              Header(),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.3, // gives Center space to work with
+        ),
+              Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -59,33 +64,44 @@ class LibraryViewState extends State<LibraryView>{
                   fontFamily: 'Inter'
               ),
             ),
-
           ],
         ),
-      )
-        : ListView.builder(
-        itemCount: mangaList.length,
-          itemBuilder: (context, index){
-          var mangaLib = mangaList[index];
-          var title = mangaLib[index]['title'];
-          var libCover = mangaLib[index]['coverUrl'];
-          var libId = mangaLib[index]['id'];
-          return ListTile(
-            leading: Image.network(
-              '$libCover.512.jpg',
-              fit: BoxFit.fill,
-            ),
-            title: Text(title),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ReaderPage( mangaId: libId),
-                )
-              );
-            },
-          );
-          }
       ),
+      ],
+    ),
+      )
+        : SingleChildScrollView(
+    child: Column (
+    children: <Widget> [
+            Header(),
+            ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+              itemCount: mangaList.length,
+                itemBuilder: (context, index){
+                var mangaLib = mangaList[index];
+                var title = mangaLib[index]['title'];
+                var libCover = mangaLib[index]['coverUrl'];
+                var libId = mangaLib[index]['id'];
+                return ListTile(
+                  leading: Image.network(
+                    '$libCover.512.jpg',
+                    fit: BoxFit.fill,
+                  ),
+                  title: Text(title),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ReaderPage( mangaId: libId),
+                      )
+                    );
+                  },
+                );
+                }
+            ),
+          ]
+        )
+      )
     );
   }
 }

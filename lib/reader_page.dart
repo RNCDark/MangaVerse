@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
+import 'header_widget.dart';
 
 var readerList = [];
 List<dynamic> bookmarked = [];
@@ -175,11 +176,6 @@ class _ChapterListState extends State<ChapterList>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: mangaData.isNotEmpty
-          ? Text(mangaData[0]['title'])
-          : Text('Loading...'),
-      ),
         floatingActionButton: TextButton(
           style: ButtonStyle(
             foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
@@ -207,74 +203,83 @@ class _ChapterListState extends State<ChapterList>{
         body: isLoading
           ? Center(child: CircularProgressIndicator()
         )
-          : ListView.builder(
-        itemCount: chapters.length,
-        itemBuilder: (context, index) {
-          var chapter = chapters[index];
-          var attributes = chapter['attributes'] ?? {};
-          var chpId = chapter['chapterId'] ?? chapter['id'];
-          var chp = attributes['chapter'];
-          var lang = attributes['lang'];
-          var ext = attributes['externalUrl'];
-          var chapterTitle = attributes['title'] ?? 'No Title';
-          return ListTile(
-            subtitle: Text(lang),
-            title: Text('Chapter.$chp $chapterTitle'),
-            onTap: () async{
-              if(ext != null) {
-                final Uri external = Uri.parse(ext);
-                if (await canLaunchUrl(external)) {
-                  await launchUrl(external);
-                } else {
-                  print('❌ Could not launch $ext');
-                }
-              }
-              final pageU = await fetchPages(chpId);
-              if(!context.mounted)return;
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Scaffold(
-                    body: NestedScrollView(
-                      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled){
-                        return <Widget>[
-                          SliverAppBar(
-                            title: Text('Chp. $chp'),
-                            floating: true,
-                            snap: true,
-                          )
-                        ];
-                      },
-                      floatHeaderSlivers: true,
-                      body: ListView.builder(
-                      itemCount: pageU.length,
-                      itemBuilder: (context, index){
-                        var pages = pageU[index];
-                        return Padding(padding: const EdgeInsets.symmetric(vertical: 5.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Expanded(
-                                  child: Image.network(
-                                    pages,
-                                    fit: BoxFit.contain,
-                                    alignment: Alignment.topCenter,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Text('❌ Failed to load image');
-                                    },
-                                  ),
-                                ),
-                              ],
-                            )
-                        );
-                      },
-                    ),
-                  )
-                  ))
-              );// Navigate to chapter details or display chapter content
-            },
-          );
-        },
-      ),
+          : SingleChildScrollView(
+          child: Column(
+            children: <Widget> [
+                Header(access: widget.accessToken,),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                itemCount: chapters.length,
+                itemBuilder: (context, index) {
+                var chapter = chapters[index];
+                var attributes = chapter['attributes'] ?? {};
+                var chpId = chapter['chapterId'] ?? chapter['id'];
+                var chp = attributes['chapter'];
+                var lang = attributes['lang'];
+                var ext = attributes['externalUrl'];
+                var chapterTitle = attributes['title'] ?? 'No Title';
+                return ListTile(
+                  subtitle: Text(lang),
+                  title: Text('Chapter.$chp $chapterTitle'),
+                  onTap: () async{
+                    if(ext != null) {
+                      final Uri external = Uri.parse(ext);
+                      if (await canLaunchUrl(external)) {
+                        await launchUrl(external);
+                      } else {
+                        print('❌ Could not launch $ext');
+                      }
+                    }
+                    final pageU = await fetchPages(chpId);
+                    if(!context.mounted)return;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Scaffold(
+                          body: NestedScrollView(
+                            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled){
+                              return <Widget>[
+                                SliverAppBar(
+                                  title: Text('Chp. $chp'),
+                                  floating: true,
+                                  snap: true,
+                                )
+                              ];
+                            },
+                            floatHeaderSlivers: true,
+                            body: ListView.builder(
+                            itemCount: pageU.length,
+                            itemBuilder: (context, index){
+                              var pages = pageU[index];
+                              return Padding(padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Expanded(
+                                        child: Image.network(
+                                          pages,
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.topCenter,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return const Text('❌ Failed to load image');
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                              );
+                            },
+                          ),
+                        )
+                        ))
+                    );// Navigate to chapter details or display chapter content
+                  },
+                );
+              },
+            ),
+          ]
+        )
+      )
     );
   }
 }
