@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
 import 'header_widget.dart';
+import 'main.dart';
 
 List<dynamic> updates = [];
 
@@ -69,7 +70,7 @@ class UpdateViewState extends State<UpdateView>{
           }
           return {
             'title': title,
-            'updated': updated,
+            'updated': timeFormat(updated),
             'status': manga['attributes']?['status'] ?? [],
             'coverUrl': coverUrl,
             'id' : manga['id'],

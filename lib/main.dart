@@ -3,8 +3,14 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
 import 'header_widget.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 String accessToken = ''; //early declaration for usage later
+
+String timeFormat(String time){
+  DateTime parsed = DateTime.parse(time);
+  return timeago.format(parsed);
+}
 
 void main() {
   runApp(const MyApp());
@@ -103,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
       isLoading = true; //show loading spinner
     });
     var mangaResponse = await http.get(
-      Uri.parse('https://api.mangadex.org/manga?includes[]=cover_art'),
+      Uri.parse('https://api.mangadex.org/manga?includes[]=cover_art&order[latestUploadedChapter]=desc'),
       headers: {
         'Authorization': 'Bearer $accessToken',
       },
@@ -115,10 +121,11 @@ class _MyHomePageState extends State<MyHomePage> {
       var data = jsonDecode(mangaResponse.body); //decoding manga data
       //print(data);
       setState(() {
-        mangaList = data['data'].map((manga){ //storing the manga data
+        mangaList = data['data'].map((manga) { //storing the manga data
           // Extracting the title and cover image URL
           var title = manga['attributes']?['title']?['en'] ?? 'No Title';
           var updated = manga['attributes']?['updatedAt'] ?? [];
+          //var latestChpId = manga['attributes']['latestUploadedChapter'] ?? 'Unknown';
           var relationships = manga['relationships'] ?? [];
           var coverArt = relationships.firstWhere(
                 (rel) => rel['type'] == 'cover_art',
@@ -130,9 +137,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
             coverUrl = 'https://uploads.mangadex.org/covers/${manga['id']}/$fileName';
           }
+          String recentChp = '';
+          /*if(latestChpId != null){
+            final chapterUrl = Uri.parse('https://api.mangadex.org/chapter/$latestChpId');
+            final chapterResponse = await http.get(chapterUrl);
+            if (chapterResponse.statusCode == 200) {
+              final chapterData = jsonDecode(chapterResponse.body)['data'];
+              recentChp = chapterData['attributes']['chapter'] ?? 'Unknown';
+            }
+          }*/
           return {
             'title': title,
-            'updated': updated,
+            'updated': timeFormat(updated),
+            //'recentChp' : recentChp,
             'status': manga['attributes']?['status'] ?? [],
             'coverUrl': coverUrl,
             'id' : manga['id'],
@@ -184,6 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   var mangaId = manga['id'];
                   var title = manga['title'];
                   var updated = manga['updated'];
+                  //var recent = manga['recentChp'];
                   var stats = manga['status'];
                   var coverUrl = manga['coverUrl'];
                   return ListTile(
