@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'reader_page.dart';
 import 'header_widget.dart';
+import 'popular_caro.dart';
+import 'trending_caro.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 String accessToken = ''; //early declaration for usage later
@@ -109,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
       isLoading = true; //show loading spinner
     });
     var mangaResponse = await http.get(
-      Uri.parse('https://api.mangadex.org/manga?includes[]=cover_art&order[latestUploadedChapter]=desc'),
+      Uri.parse('https://api.mangadex.org/manga?limit=9&offset=0&includes[]=cover_art&order[latestUploadedChapter]=desc'),
       headers: {
         'Authorization': 'Bearer $accessToken',
       },
@@ -178,6 +180,19 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
             Header(access: accessToken,),
             SizedBox(height: 24,),
+            Text('Trending',
+              textAlign: TextAlign.left,
+              style : TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+                height: 1.20,
+                letterSpacing: -0.48,
+              ),
+            ),
+            //Trending(accessToken: accessToken),
+            SizedBox(height: 24,),
             Text('Recently Updated',
               textAlign: TextAlign.left,
               style : TextStyle(
@@ -195,9 +210,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
                     childAspectRatio: 3,
                 ),
                 itemCount: mangaList.length,
@@ -259,6 +274,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
               ),
+          SizedBox(height: 24,),
+          Text('Popular',
+            textAlign: TextAlign.left,
+            style : TextStyle(
+              color: Colors.black,
+              fontSize: 24,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+              height: 1.20,
+              letterSpacing: -0.48,
+            ),
+          ),
+          SizedBox(height: 500,
+          child: Popular(accessToken: accessToken),
+          ),
           ],
         ),
       ),
