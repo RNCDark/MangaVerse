@@ -189,12 +189,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 letterSpacing: -0.48,
               ),
             ),
-            Card(
-            child : Padding(
-              padding: EdgeInsets.all(8),
-              child: ListView.builder(
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: GridView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 3,
+                ),
                 itemCount: mangaList.length,
                 itemBuilder: (context, index){
                   var manga = mangaList[index];
@@ -204,13 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   //var recent = manga['recentChp'];
                   var stats = manga['status'];
                   var coverUrl = manga['coverUrl'];
-                  return ListTile(
-                    leading: Image.network(
-                      '$coverUrl.512.jpg',
-                      fit: BoxFit.fill,
-                    ),
-                    title: Text(title),
-                    subtitle: Text('$stats - $updated'),
+                  return InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -218,11 +217,48 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       );
                     },
+                    child: Card(
+                      elevation: 2,
+                      child: Padding(
+                          padding: EdgeInsets.all(8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            AspectRatio(
+                            aspectRatio: 0.75,
+                            child: Image.network(
+                                '$coverUrl.512.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(width: 40,),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(title,
+                                  maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                  SizedBox(height: 4,),
+                                  Text('$stats - $updated',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),)
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
               ),
-            ),
           ],
         ),
       ),
