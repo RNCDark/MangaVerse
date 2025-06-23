@@ -7,6 +7,7 @@ import 'heroimage_widget.dart';
 
 var readerList = [];
 List<dynamic> bookmarked = [];
+List<String> pageUrls = [];
 
 class ReaderPage extends StatelessWidget{
   const ReaderPage({super.key, this.accessToken, required this.mangaId});
@@ -229,7 +230,7 @@ class _ChapterListState extends State<ChapterList>{
                     final firstChapter = chapters.firstWhere(
                           (ch) {
                         final chapterNum = ch['attributes']?['chapter']?.toString();
-                        return chapterNum != null && chapterNum.startsWith('1');
+                        return chapterNum != null && chapterNum == ('1');
                       },
                       orElse: () => chapters.last,
                     );
@@ -295,50 +296,20 @@ class _ChapterListState extends State<ChapterList>{
                       if (await canLaunchUrl(external)) {
                         await launchUrl(external);
                       } else {
-                        print('❌ Could not launch $ext');
+                        SnackBar(content: Text('❌ Could not launch $ext'));
                       }
                     }
                     final pageU = await fetchPages(chpId);
                     if(!context.mounted)return;
                     Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Scaffold(
-                          body: NestedScrollView(
-                            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled){
-                              return <Widget>[
-                                SliverAppBar(
-                                  title: Text('Chp. $chp'),
-                                  floating: true,
-                                  snap: true,
-                                )
-                              ];
-                            },
-                            floatHeaderSlivers: true,
-                            body: ListView.builder(
-                            itemCount: pageU.length,
-                            itemBuilder: (context, index){
-                              var pages = pageU[index];
-                              return Padding(padding: const EdgeInsets.symmetric(vertical: 5.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Expanded(
-                                        child: Image.network(
-                                          pages,
-                                          fit: BoxFit.contain,
-                                          alignment: Alignment.topCenter,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Text('❌ Failed to load image');
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                              );
-                            },
-                          ),
-                        )
-                        ))
+                        MaterialPageRoute(builder: (context) => ChpPages(
+                          chapterIndex: index,
+                          chapters: chapters,
+                          accessToken: widget.accessToken,
+                          pages: pageU,
+                        ),
+                      ),
                     );// Navigate to chapter details or display chapter content
                   },
                 );
@@ -347,6 +318,131 @@ class _ChapterListState extends State<ChapterList>{
           ]
         )
       )
+    );
+  }
+}
+
+class ChpPages extends StatelessWidget {
+  final int chapterIndex;
+  final List chapters;
+  final String? accessToken;
+  final List pages;
+
+  const ChpPages({
+    super.key,
+    required this.chapterIndex,
+    required this.chapters,
+    this.accessToken,
+    required this.pages,
+  });
+
+  Future<List<String>> fetchPages(String chapterId) async{
+    var url = Uri.parse('https://api.mangadex.org/at-home/server/$chapterId');
+    var response = await http.get(url);
+
+    if(response.statusCode == 200){
+      print('Page fetch Success');
+      var data = jsonDecode(response.body);
+      //print(data);
+      String baseUrl = data['baseUrl'];
+      String hash = data['chapter']['hash'];
+      //print(baseUrl);
+      List<dynamic> pages = data['chapter']['data']; //png
+      pageUrls = pages.map<String>((file){
+        return '$baseUrl/data/$hash/$file';
+      }).toList();
+    }else{
+      print('Page fetch failed : ${response.statusCode}');
+      return []; //stops on failure
+    }
+    return pageUrls;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentChapter = chapters[chapterIndex];
+    final chp = currentChapter['attributes']['chapter'];
+
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverAppBar(
+            title: Text('Chp. $chp'),
+            floating: true,
+            snap: true,
+          ),
+        ],
+        floatHeaderSlivers: true,
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: pages.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    child: Image.network(
+                      pages[index],
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                      const Text('❌ Failed to load image'),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (chapterIndex > 0)
+                  TextButton(
+                    onPressed: () async {
+                      final next = chapters[chapterIndex + 1];
+                      final nextId = next['chapterId'] ?? next['id'];
+                      final nextPages = await fetchPages(nextId);
+                      if (!context.mounted) return;
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChpPages(
+                            chapterIndex: chapterIndex - 1,
+                            chapters: chapters,
+                            accessToken: accessToken,
+                            pages: nextPages,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('← Next Chapter'),
+                  ),
+                if (chapterIndex < chapters.length - 1)
+                  TextButton(
+                    onPressed: () async {
+                      final prev = chapters[chapterIndex - 1];
+                      final prevId = prev['chapterId'] ?? prev['id'];
+                      final prevPages = await fetchPages(prevId);
+                      if (!context.mounted) return;
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChpPages(
+                            chapterIndex: chapterIndex + 1,
+                            chapters: chapters,
+                            accessToken: accessToken,
+                            pages: prevPages,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Previous Chapter →'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
