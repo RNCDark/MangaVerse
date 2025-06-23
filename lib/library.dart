@@ -74,15 +74,26 @@ class LibraryViewState extends State<LibraryView>{
     child: Column (
     children: <Widget> [
             Header(),
+            Text('Library',
+              textAlign: TextAlign.left,
+              style : TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+                height: 1.20,
+                letterSpacing: -0.48,
+              ),
+            ),
             ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
               itemCount: mangaList.length,
                 itemBuilder: (context, index){
                 var mangaLib = mangaList[index];
-                var title = mangaLib[index]['title'];
-                var libCover = mangaLib[index]['coverUrl'];
-                var libId = mangaLib[index]['id'];
+                var title = mangaLib['title'];
+                var libCover = mangaLib['coverUrl'];
+                var libId = mangaLib['id'];
                 return ListTile(
                   leading: Image.network(
                     '$libCover.512.jpg',
