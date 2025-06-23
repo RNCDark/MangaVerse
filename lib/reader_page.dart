@@ -58,7 +58,7 @@ class _ChapterListState extends State<ChapterList>{
     String uLang = "en";
     List<dynamic> allChapters = [];
 
-    var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art');
+    var url2 = Uri.parse('https://api.mangadex.org/manga/${widget.mangaId}?includes[]=cover_art&includes[]=author&includes[]=artist');
     var accessToken = widget.accessToken;
 
     var mangaResponse = await http.get(url2, headers: {
@@ -72,7 +72,26 @@ class _ChapterListState extends State<ChapterList>{
         var manga = data['data']; //storing the manga data
         // Extracting the title and cover image URL
         var title = manga['attributes']?['title']?['en'] ?? 'No Title';
+        var attributes = manga['attributes'];
         var relationships = manga['relationships'] ?? [];
+        var des = attributes['description']?['en'];
+        var altTitle = attributes['altTitles'];
+        var tags = attributes['tags'];
+        List tagNames = [];
+        for(var tag in tags){ //tags is a list not a map
+          var name = tag['attributes']?['name']?['en'];
+          if(name != null){
+            tagNames.add(name);
+          }
+        }
+        var artist = relationships.firstWhere(
+              (rel) => rel['type'] == 'artist',
+          orElse: () => null,
+        );
+        var author = relationships.firstWhere(
+              (rel) => rel['type'] == 'author',
+          orElse: () => null,
+        );
         var coverArt = relationships.firstWhere(
               (rel) => rel['type'] == 'cover_art',
           orElse: () => null,
@@ -87,6 +106,11 @@ class _ChapterListState extends State<ChapterList>{
         mangaData = [
           {
             'title': title,
+            'altTitles': altTitle,
+            'description': des,
+            'author': author['name'],
+            'artist': artist['name'],
+            'tags': tagNames,
             'coverUrl': coverUrl,
             'id' : manga['id'],
           }
