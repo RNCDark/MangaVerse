@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'header_widget.dart';
+import 'heroimage_widget.dart';
 
 var readerList = [];
 List<dynamic> bookmarked = [];
@@ -76,6 +77,9 @@ class _ChapterListState extends State<ChapterList>{
         var relationships = manga['relationships'] ?? [];
         var des = attributes['description']?['en'];
         var altTitle = attributes['altTitles'];
+        var year = attributes['year'];
+        var stat = attributes['status'];
+        var content = attributes['contentRating'];
         var tags = attributes['tags'];
         List tagNames = [];
         for(var tag in tags){ //tags is a list not a map
@@ -108,9 +112,12 @@ class _ChapterListState extends State<ChapterList>{
             'title': title,
             'altTitles': altTitle,
             'description': des,
-            'author': author['name'],
-            'artist': artist['name'],
+            'author': author['attributes']?['name'],
+            'artist': artist['attributes']?['name'],
             'tags': tagNames,
+            'year': year,
+            'status':stat,
+            'rating':content,
             'coverUrl': coverUrl,
             'id' : manga['id'],
           }
@@ -200,30 +207,6 @@ class _ChapterListState extends State<ChapterList>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: TextButton(
-          style: ButtonStyle(
-            foregroundColor: WidgetStateProperty.all<Color>(Colors.blue),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states){
-                  if(states.contains(WidgetState.hovered)) {
-                    return Colors.blue.withAlpha(40);
-                  }
-                  if (states.contains(WidgetState.focused) ||
-                      states.contains(WidgetState.pressed)) {
-                    return Colors.blue.withAlpha(120);
-                  }
-                  return null;
-                }
-            ),
-          ),
-            onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Added to Library')),
-            );
-            readerList.add(reader(mangaData[0]));
-            },
-            child: Text('Bookmark')
-        ),
         body: isLoading
           ? Center(child: CircularProgressIndicator()
         )
@@ -231,6 +214,66 @@ class _ChapterListState extends State<ChapterList>{
           child: Column(
             children: <Widget> [
                 Header(access: widget.accessToken,),
+                HeroImage(title: mangaData[0]['title'],
+                    author: mangaData[0]['author'],
+                    coverUrl: mangaData[0]['coverUrl'],
+                    onAddToLibrary: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Added to Library')),
+                      );
+                      readerList.add(reader(mangaData[0]));
+                    },
+                  onRead: () async{
+                    if (chapters.isEmpty) return;
+
+                    final firstChapter = chapters.firstWhere(
+                          (ch) {
+                        final chapterNum = ch['attributes']?['chapter']?.toString();
+                        return chapterNum != null && chapterNum.startsWith('1');
+                      },
+                      orElse: () => chapters.last,
+                    );
+                    final firstChapterId = firstChapter['chapterId'] ?? firstChapter['id'];
+                    final pageUrls = await fetchPages(firstChapterId);
+
+                    if (!context.mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          body: NestedScrollView(
+                            headerSliverBuilder: (context, _) => [
+                              SliverAppBar(title: Text('Chp. ${firstChapter['attributes']['chapter']}')),
+                            ],
+                            floatHeaderSlivers: true,
+                            body: ListView.builder(
+                              itemCount: pageUrls.length,
+                              itemBuilder: (context, index) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 5),
+                                child: Image.network(
+                                  pageUrls[index],
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Text('❌ Failed to load image'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Text('Chapters',
+                  textAlign: TextAlign.left,
+                  style : TextStyle(
+                    color: Colors.black,
+                    fontSize: 24,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w600,
+                    height: 1.20,
+                    letterSpacing: -0.48,
+                  ),
+                ),
                 ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
