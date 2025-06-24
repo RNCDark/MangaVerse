@@ -58,14 +58,11 @@ class _MyHomePageState extends State<MyHomePage> {
         mangaList = [
           {
             'id' : 'mock-id',
+            'title': 'Mock Manga',
             'attributes' : {
-              'title': 'Mock Manga',
               'updated' : '30 sec',
             },
-            'relationships': {
-              'coverUrl' : 'https//via.placeholder.com/150',
-
-            }
+            'coverUrl' : 'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif',
           }
         ];
       });
@@ -244,7 +241,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             AspectRatio(
                             aspectRatio: 0.75,
                             child: Image.network(
-                                '$coverUrl.512.jpg',
+                                // '$coverUrl.512.jpg',
+                                coverUrl,
                                 fit: BoxFit.cover,
                               ),
                             ),
