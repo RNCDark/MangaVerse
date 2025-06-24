@@ -41,6 +41,7 @@ class ChapterList extends StatefulWidget {
 }
 
 class _ChapterListState extends State<ChapterList>{
+  bool useMock = false;
   bool isLoading = true;
   List<dynamic> chapters = [];
   List<dynamic> mangaData = [];
@@ -49,7 +50,32 @@ class _ChapterListState extends State<ChapterList>{
   @override
   void initState() {
     super.initState();
-    fetchChapters();
+    if(useMock){
+      setState(() {
+        mangaData = [
+          {
+            'id' : 'mock-id',
+            'attributes' : {
+              'title': 'Mock Manga',
+              'updated' : '30 sec',
+              'altTitle': 'ja',
+              'description': 'Mock description',
+              'content': 'Mock rating - Safe',
+              'tags': 'Action, Adventure',
+            },
+            'relationships': {
+              'coverUrl' : 'https//via.placeholder.com/150',
+              'artist': 'Mock artist',
+              'author': 'Mock author',
+
+            }
+          }
+        ];
+      });
+      isLoading = false;
+    } else {
+      fetchChapters();
+    }
     //fetchPages('');
   }
 
@@ -264,6 +290,84 @@ class _ChapterListState extends State<ChapterList>{
                     );
                   },
                 ),
+                Column (
+                    children: [
+                      Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Flexible(
+                                child: Text(mangaData[0]['description'] ?? 'No description',
+                                  textAlign: TextAlign.left,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 5,
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 16,
+                                    fontFamily: 'Noto Sans',
+                                  ),
+                                ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          TextButton(
+                              onPressed: (){
+
+                              },
+                              child: Text(mangaData[0]['rating'])),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: mangaData[0]['tags'].map<Widget>((tag) {
+                              return TextButton(
+                                onPressed: () {
+
+                                },
+                                child: Text(tag),
+                              );
+                            }).toList(),
+                          )//placement
+                        ],
+                      ),
+                      const SizedBox(height: 15,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Publication:',
+                            textAlign: TextAlign.left,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                              fontFamily: 'Noto Sans',
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: 10,),
+                          Text('${mangaData[0]['year']}, ${mangaData[0]['status']}',
+                            textAlign: TextAlign.left,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                              fontFamily: 'Noto Sans',
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                SizedBox(height: 30,),
                 Text('Chapters',
                   textAlign: TextAlign.left,
                   style : TextStyle(
