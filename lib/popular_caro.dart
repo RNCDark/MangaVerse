@@ -26,13 +26,30 @@ class PopularList extends StatefulWidget {
 }
 
 class _PopularListState extends State<PopularList> {
+  bool useMock = true; //front end dev
   bool isLoading = true;
   List <dynamic> popList = [];
 
   @override
   void initState() {
     super.initState();
-    popularFeed();
+    if(useMock){
+      setState(() {
+        popList = [
+          {
+            'id' : 'mock-id',
+            'title': 'Mock Manga',
+            'attributes' : {
+              'updated' : '30 sec',
+            },
+            'coverUrl' : 'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif',
+          }
+        ];
+      });
+      isLoading = false;
+    } else {
+      popularFeed();
+    }
   }
 
   Future<void> popularFeed() async {
@@ -110,7 +127,7 @@ class _PopularListState extends State<PopularList> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                           child: Image.network(
-                            '${manga['coverArt']}.512.jpg',
+                            '${manga['coverArt']}',
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -134,8 +151,8 @@ class _PopularListState extends State<PopularList> {
         }).toList(),
         options: CarouselOptions(
           height: 300, // Make sure this fits the content
-          autoPlay: true,
-          enlargeCenterPage: true,
+          autoPlay: false,
+          enlargeCenterPage: false,
           viewportFraction: 0.55,
           aspectRatio: 2.0,
         ),
