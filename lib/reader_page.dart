@@ -251,42 +251,67 @@ class _ChapterListState extends State<ChapterList>{
                       readerList.add(reader(mangaData[0]));
                     },
                   onRead: () async{
-                    if (chapters.isEmpty) return;
-
-                    final firstChapter = chapters.firstWhere(
-                          (ch) {
-                        final chapterNum = ch['attributes']?['chapter']?.toString();
-                        return chapterNum != null && chapterNum == ('1');
-                      },
-                      orElse: () => chapters.last,
-                    );
-                    final firstChapterId = firstChapter['chapterId'] ?? firstChapter['id'];
-                    final pageUrls = await fetchPages(firstChapterId);
-
+                    List <dynamic> firstChp = chapters.where((chp){
+                      final chpNum = chp['attributes']?['chapter'];
+                      return chpNum != null && chpNum == ('1');
+                    }).toList();
                     if (!context.mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Scaffold(
-                          body: NestedScrollView(
-                            headerSliverBuilder: (context, _) => [
-                              SliverAppBar(title: Text('Chp. ${firstChapter['attributes']['chapter']}')),
-                            ],
-                            floatHeaderSlivers: true,
-                            body: ListView.builder(
-                              itemCount: pageUrls.length,
-                              itemBuilder: (context, index) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 5),
-                                child: Image.network(
-                                  pageUrls[index],
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Text('❌ Failed to load image'),
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context){
+                          return SimpleDialog(
+                            title: const Text('Select Chapter'),
+                            children: [
+                              SizedBox(
+                                width: double.maxFinite,
+                                height: 280,
+                                child: isLoading
+                                    ? Center(child: CircularProgressIndicator()
+                                )
+                                 : ListView.builder(
+                                  itemCount: firstChp.length,
+                                  shrinkWrap: true,
+                                  itemBuilder: (context, index){
+                                    var chp = firstChp[index];
+                                    var title = chp['attributes']['title'] ?? 'No title';
+                                    var chpId = chp['chapterId'];
+                                    var chapter = chp['attributes']['chapter'];
+                                    var ext = chp['attributes']['externalUrl'];
+                                    var lang = chp['attributes']?['lang'];
+                                    return ListTile(
+                                      title: Text('$chapter.$title'),
+                                      subtitle: Text(lang),
+                                      onTap: () async{
+                                        if(ext != null) {
+                                          final Uri external = Uri.parse(ext);
+                                          if (await canLaunchUrl(external)) {
+                                              await launchUrl(external);
+                                          } else {
+                                            if(!context.mounted)return;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('❌ Could not launch $ext')),
+                                            );
+                                          }
+                                        }
+                                        final pageUrls = await fetchPages(chpId);
+                                        if(!context.mounted)return;
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => ChpPages(
+                                                chapterIndex: chapters.indexOf(chp),
+                                                chapters: chapters,
+                                                pages: pageUrls
+                                            ),
+                                        )
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                              )
+                            ],
+                          );
+                        }
                     );
                   },
                 ),
@@ -353,7 +378,7 @@ class _ChapterListState extends State<ChapterList>{
                             ),
                           ),
                           SizedBox(width: 10,),
-                          Text('${mangaData[0]['year']}, ${mangaData[0]['status']}',
+                          Text('${mangaData[0]['year'] ?? 'No Year'}, ${mangaData[0]['status']}',
                             textAlign: TextAlign.left,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
@@ -400,7 +425,10 @@ class _ChapterListState extends State<ChapterList>{
                       if (await canLaunchUrl(external)) {
                         await launchUrl(external);
                       } else {
-                        SnackBar(content: Text('❌ Could not launch $ext'));
+                        if(!context.mounted)return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('❌ Could not launch $ext')),
+                        );
                       }
                     }
                     final pageU = await fetchPages(chpId);
