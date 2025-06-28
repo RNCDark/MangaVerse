@@ -26,7 +26,7 @@ class PopularList extends StatefulWidget {
 }
 
 class _PopularListState extends State<PopularList> {
-  bool useMock = true; //front end dev
+  bool useMock = false; //front end dev
   bool isLoading = true;
   List <dynamic> popList = [];
 
