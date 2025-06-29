@@ -37,7 +37,7 @@ class _TrendingListState extends State<TrendingList> {
 
   Future<void> trendingFeed() async {
     var accessToken = widget.accessToken;
-    var url = Uri.parse('https://api.mangadex.org/manga?includes[]=cover_art&order[updatedAt]=desc&limit=5');
+    var url = Uri.parse('https://api.mangadex.org/manga?includes[]=cover_art&order[createdAt]=desc&&order[followedCount]=desc&limit=10');
     var trendResponse = await http.get(url, headers: {
       'Authorization': 'Bearer $accessToken',
     });
