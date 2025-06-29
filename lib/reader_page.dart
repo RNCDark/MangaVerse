@@ -150,7 +150,6 @@ class _ChapterListState extends State<ChapterList>{
           }
         ];
       });
-      isLoading = false;
     }
 
     while(more) {
@@ -404,7 +403,30 @@ class _ChapterListState extends State<ChapterList>{
                     letterSpacing: -0.48,
                   ),
                 ),
-                ListView.builder(
+              isLoading
+                  ? Center(child: CircularProgressIndicator()
+              )
+                  : chapters.isEmpty
+                  ? Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey),
+                ),
+                child: const Center(
+                  child: Text(
+                    'No chapters',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              )
+                  :ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                 itemCount: chapters.length,
